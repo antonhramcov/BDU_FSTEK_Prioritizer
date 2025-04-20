@@ -15,6 +15,13 @@ def find(id:str) -> Union[dict, str, None]:
             return dict(zip(keys, values))
     return None
 
+def get_level(id:str) -> str:
+    if find(id) != None:
+        value_level = find(id)['Уровень опасности уязвимости'].split()[0]
+        name = {'Низкий':'Priority 4', 'Средний':'Priority 3', 'Высокий':'Priority 2', 'Критический':'Priority 1'}
+        return name[value_level]
+
+
 def bdu_from_cve(id:str) -> Union[str, None]:
     sheet = load_workbook('vullist.xlsx').active
     if not match(r'BDU:\d{4}-\d+', id):

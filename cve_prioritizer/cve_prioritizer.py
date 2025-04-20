@@ -19,8 +19,8 @@ from dotenv import load_dotenv
 from datetime import datetime, timezone
 
 from scripts.constants import LOGO, SIMPLE_HEADER, VERBOSE_HEADER, BDU_SIMPLE_HEADER
-from scripts.helpers import parse_report, update_env_file, worker
-from scripts.bdu_fstek import find, bdu_from_cve
+from scripts.helpers import parse_report, update_env_file, worker, colored_print
+from scripts.bdu_fstek import find, bdu_from_cve, get_level
 
 load_dotenv()
 Throttle_msg = ''
@@ -84,6 +84,10 @@ def main(api, bdu, cve, epss, file, cvss, output, threads, verbose, list, no_col
     elif bdu:
         if bdu_from_cve(bdu) != None:
             cve_list.append(bdu_from_cve(bdu))
+        elif find(bdu) != None:
+            cve_list.append(bdu)
+        else:
+            pass
     elif list:
         cve_list = list.split(',')
     elif file:
@@ -120,8 +124,10 @@ def main(api, bdu, cve, epss, file, cvss, output, threads, verbose, list, no_col
         elif (vulncheck or vulncheck_kev) and not os.getenv('VULNCHECK_API') and not api:
             click.echo("VulnCheck requires an API key")
             exit()
-        if not re.match(r'(CVE|cve-\d{4}-\d+$)', cve):
+        if not (re.match(r'(CVE|cve-\d{4}-\d+$)', cve) or (re.match(r'(BDU:\d{4}-\d+)', cve))):
             click.echo(f'{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*')
+        elif re.match(r'(BDU:\d{4}-\d+)', cve):
+            click.echo(f"{cve:<18}{'not found':<18}{colored_print(get_level(cve))}")
         else:
             sem.acquire()
             t = threading.Thread(target=worker, args=(cve.upper().strip(), bdu, cvss_threshold, epss_threshold, verbose,
