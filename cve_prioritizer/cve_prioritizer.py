@@ -18,8 +18,9 @@ import click
 from dotenv import load_dotenv
 from datetime import datetime, timezone
 
-from scripts.constants import LOGO, SIMPLE_HEADER, VERBOSE_HEADER
+from scripts.constants import LOGO, SIMPLE_HEADER, VERBOSE_HEADER, BDU_SIMPLE_HEADER
 from scripts.helpers import parse_report, update_env_file, worker
+from scripts.bdu_fstek import find, bdu_from_cve
 
 load_dotenv()
 Throttle_msg = ''
@@ -28,6 +29,7 @@ Throttle_msg = ''
 # argparse setup
 @click.command()
 @click.option('-a', '--api', type=str, help='Your API Key')
+@click.option('-b', '--bdu', type=str, help='Unique BDU-ID')
 @click.option('-c', '--cve', type=str, help='Unique CVE-ID')
 @click.option('-e', '--epss', type=float, default=0.2, help='EPSS threshold (Default 0.2)')
 @click.option('-f', '--file', type=click.File('r'), help='TXT file with CVEs (One per Line)')
@@ -45,7 +47,7 @@ Throttle_msg = ''
 @click.option('--openvas', is_flag=True, help='Parse OpenVAS file')
 @click.option('--report', type=click.Choice(['html', 'pdf']), help='Generate a report in HTML or PDF format')
 @click.option('--cvss-version', type=int, default=3, help='Preferred CVSS version (3 or 4)')
-def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev,
+def main(api, bdu, cve, epss, file, cvss, output, threads, verbose, list, no_color, set_api, vulncheck, vulncheck_kev,
          json_file, nessus, openvas, report, cvss_version):
 
     # Global Arguments
@@ -53,7 +55,7 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
     throttle_msg = ''
 
     # standard args
-    header = VERBOSE_HEADER if verbose else SIMPLE_HEADER
+    header = VERBOSE_HEADER if verbose else BDU_SIMPLE_HEADER if bdu else SIMPLE_HEADER
     epss_threshold = epss
     cvss_threshold = cvss
     sem = Semaphore(threads)
@@ -79,6 +81,9 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
 
     if cve:
         cve_list.append(cve)
+    elif bdu:
+        if bdu_from_cve(bdu) != None:
+            cve_list.append(bdu_from_cve(bdu))
     elif list:
         cve_list = list.split(',')
     elif file:
@@ -119,7 +124,7 @@ def main(api, cve, epss, file, cvss, output, threads, verbose, list, no_color, s
             click.echo(f'{cve} Error: CVEs should be provided in the standard format CVE-0000-0000*')
         else:
             sem.acquire()
-            t = threading.Thread(target=worker, args=(cve.upper().strip(), cvss_threshold, epss_threshold, verbose,
+            t = threading.Thread(target=worker, args=(cve.upper().strip(), bdu, cvss_threshold, epss_threshold, verbose,
                                                       sem, color_enabled, cvss_version, output, api, vulncheck,
                                                       vulncheck_kev, results))
             threads.append(t)

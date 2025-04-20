@@ -367,7 +367,7 @@ def truncate_string(input_string, max_length):
 
 
 # Function manages the outputs
-def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, ransomware,
+def print_and_write(working_file, bdu, cve_id, priority, epss, cvss_base_score, cvss_version, cvss_severity, kev, ransomware,
                     source, verbose, cpe, vector, no_color):
     color_priority = colored_print(priority)
     vendor, product = parse_cpe(cpe)
@@ -384,16 +384,16 @@ def print_and_write(working_file, cve_id, priority, epss, cvss_base_score, cvss_
                        f"{truncate_string(product, 20):<23}{vector}")
     else:
         if no_color:
-            click.echo(f"{cve_id:<18}{color_priority:<22}")
+            click.echo(f"{bdu:<18}{cve_id:<18}{color_priority:<22}")
         else:
-            click.echo(f"{cve_id:<18}{priority:<13}")
+            click.echo(f"{bdu:<18}{cve_id:<18}{priority:<13}")
     if working_file:
         working_file.write(f"{cve_id},{priority},{epss},{cvss_base_score},{cvss_version},{cvss_severity},"
                            f"{kev},{ransomware},{source},{cpe},{vendor},{product},{vector}\n")
 
 
 # Main function
-def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, cvss_v, save_output=None, api=None,
+def worker(cve_id, bdu, cvss_score, epss_score, verbose_print, sem, colored_output, cvss_v, save_output=None, api=None,
            nvd_plus=None, vc_kev=None, results=None):
     """
     Main Function
@@ -419,29 +419,29 @@ def worker(cve_id, cvss_score, epss_score, verbose_print, sem, colored_output, c
         try:
             if exploited:
                 ransomware = cve_result.get('ransomware')
-                print_and_write(save_output, cve_id, 'Priority 1+', epss_result.get('epss'),
+                print_and_write(save_output, bdu, cve_id, 'Priority 1+', epss_result.get('epss'),
                                 cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                 cve_result.get('cvss_severity'), 'TRUE', ransomware, kev_source, verbose_print,
                                 cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             elif cve_result.get("cvss_baseScore") >= cvss_score:
                 if epss_result.get("epss") >= epss_score:
-                    print_and_write(save_output, cve_id, 'Priority 1', epss_result.get('epss'),
+                    print_and_write(save_output, bdu, cve_id, 'Priority 1', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
                 else:
-                    print_and_write(save_output, cve_id, 'Priority 2', epss_result.get('epss'),
+                    print_and_write(save_output, bdu, cve_id, 'Priority 2', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
             else:
                 if epss_result.get("epss") >= epss_score:
-                    print_and_write(save_output, cve_id, 'Priority 3', epss_result.get('epss'),
+                    print_and_write(save_output, bdu, cve_id, 'Priority 3', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)
                 else:
-                    print_and_write(save_output, cve_id, 'Priority 4', epss_result.get('epss'),
+                    print_and_write(save_output, bdu, cve_id, 'Priority 4', epss_result.get('epss'),
                                     cve_result.get('cvss_baseScore'), cve_result.get('cvss_version'),
                                     cve_result.get('cvss_severity'), '', '', kev_source, verbose_print,
                                     cve_result.get('cpe'), cve_result.get('vector'), colored_output)

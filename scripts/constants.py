@@ -16,6 +16,7 @@ VULNCHECK_KEV_BASE_URL = "https://api.vulncheck.com/v3/index/vulncheck-kev"
 
 # Visuals
 SIMPLE_HEADER = f"{'CVE-ID':<18}Priority"+"\n"+("-"*30)
+BDU_SIMPLE_HEADER = f"{'BDU-ID':<18}{'CVE-ID':<18}Priority"+"\n"+("-"*48)
 VERBOSE_HEADER = (f"{'CVE-ID':<18}{'PRIORITY':<13}{'EPSS':<9}{'CVSS':<6}{'VERSION':<10}{'SEVERITY':<10}{'KEV':<7}"
                   f"{'RANSOMWARE':<12}{'VENDOR':<18}{'PRODUCT':<23}VECTOR")+"\n"+("-"*170)
 LOGO = r"""
